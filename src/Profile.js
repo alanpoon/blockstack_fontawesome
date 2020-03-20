@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import {
   Person,
 } from 'blockstack';
-
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCat,faCrow,faDog } from '@fortawesome/free-solid-svg-icons'
 const avatarFallbackImage = 'https://s3.amazonaws.com/onename/avatar-placeholder.png';
 
 export default class Profile extends Component {
@@ -19,14 +20,16 @@ export default class Profile extends Component {
   	  	},
   	  },
       newStatus:"",
-      status:""
+      status:"",
+      selectedOption:""
   	};
   }
-  saveNewStatus(statusText) {
+  saveNewStatus(statusText,selectedOption) {
      const { userSession } = this.props
 
      let status = {
        text: statusText.trim(),
+       selectedOption: selectedOption,
        created_at: Date.now()
      }
 
@@ -34,7 +37,8 @@ export default class Profile extends Component {
      userSession.putFile('status.json', JSON.stringify(status), options)
        .then(() => {
          this.setState({
-           newStatus: status.text
+           newStatus: status.text,
+           selectedOption: status.selectedOption
          })
        })
   }
@@ -58,14 +62,23 @@ export default class Profile extends Component {
   }
 
   handleNewStatusSubmit(event) {
-    this.saveNewStatus(this.state.newStatus)
+    this.saveNewStatus(this.state.newStatus,this.state.selectedOption)
     this.setState({
-      newStatus: ""
+      newStatus: "",
+      status:{selectedOption: this.state.selectedOption,status:this.state.newStatus}
     })
   }
+  
+  handleOptionChange(changeEvent) {
+    this.setState({
+      selectedOption: changeEvent.target.value
+    });
+  }
+
   render() {
     const { handleSignOut, userSession } = this.props;
     const { person } = this.state;
+    let x = this.state.status.selectedOption==="cat"?faCat:this.state.status.selectedOption==="crow"?faCrow:this.state.status.selectedOption==="dog"?faDog:null;
     console.log(person)
     return (
       !userSession.isSignInPending() ?
@@ -91,15 +104,41 @@ export default class Profile extends Component {
                  placeholder="输入状态"
                />
         <br/>
+        <form>
+          <div className="radio">
+            <label>
+              <input type="radio" value="cat" 
+                            checked={this.state.selectedOption === 'cat'} 
+                            onChange={e => this.handleOptionChange(e)} />
+              cat
+            </label>
+          </div>
+          <div className="radio">
+            <label>
+              <input type="radio" value="crow" 
+                            checked={this.state.selectedOption === 'crow'} 
+                            onChange={e => this.handleOptionChange(e)} />
+              crow
+            </label>
+          </div>
+          <div className="radio">
+            <label>
+              <input type="radio" value="dog" 
+                            checked={this.state.selectedOption === 'dog'} 
+                            onChange={e => this.handleOptionChange(e)} />
+              dog
+            </label>
+          </div>
+        </form>
 
+        <p>  status is: {this.state.status.text}</p>        
+        <FontAwesomeIcon icon={x} /><br/>
         <button
                  className="btn btn-primary btn-lg"
                  onClick={e => this.handleNewStatusSubmit(e)}
                 >
                 提交
         </button>
-        <p>  status is: {this.state.status.text}</p>
-
       </div> : null
     );
   }
